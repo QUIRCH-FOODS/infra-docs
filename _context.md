@@ -20,7 +20,27 @@
 ## IP Address Scheme
 | VNET / Subnet | CIDR | Purpose |
 |---------------|------|---------|
-|               |      |         |
+| QuirchVnetEastUS2 / GatewaySubnet | 192.168.115.192/26 | |
+| QuirchVnetEastUS2 / Default | 192.168.112.0/24 | |
+| QuirchVnetEastUS2 / External | 192.168.114.128/25 | |
+| QuirchVnetEastUS2 / Secure | 192.168.114.0/25 | Holds `qsqlbackups` PE #2 (192.168.114.16) for EastUS2 VMs |
+| AVD_VNET / Internal_Subnet | 192.168.120.0/24 | |
+| AVD_VNET / External_Subnet | 192.168.121.0/24 | |
+| SQL_VNET / Internal_Subnet | 192.168.124.0/25 | |
+| SQL_VNET / SQLManageInstances1 | 192.168.124.128/25 | |
+| SQL_VNET / WebAppServices | 192.168.125.0/25 | |
+| CBB_Vnet / CBBC_External | 192.168.117.128/26 | |
+| CBB_Vnet / CBBC_Internal | 192.168.117.0/25 | |
+| CBBC_Vnet2 / GatewaySubnet | 192.168.118.192/26 | |
+| CBBC_Vnet2 / Internal | 192.168.118.0/25 | Domain Controller / DNS at 192.168.118.132 |
+| CBBC_Vnet2 / External | 192.168.118.128/25 | |
+| ButtfoodsVN / Internal | 192.168.116.0/25 | |
+| ButtfoodsVN / External | 192.168.116.128/25 | |
+| CBBC_VNET_Pacific / Internal | 10.6.1.0/25 | QSkysheepSQL VM (10.6.1.133); `qsqlbackups` PE #1 (10.6.1.134) |
+| CBBC_VNET_Pacific / External | 10.6.1.128/26 | |
+| CBBC_VNET_Pacific / GatewaySubnet | 10.6.1.192/26 | |
+| QuirchVnet / QuirchVMAzure | 192.168.104.0/23 | |
+| QuirchVnet / GatewaySubnet | 192.168.107.224/27 | |
 
 ## Key Vault References
 | Vault Name | Purpose |
