@@ -10,7 +10,12 @@
 |------|----|---------|
 | [QuirchBI](https://portal.azure.com/) | d7e52ee4-e340-4f24-8509-8460f15da95f | |
 | [QuirchDev](https://portal.azure.com/) | b664c182-e0a1-4c35-98be-f1acee3fbfe3 | |
-| [QuirchFoodsSubscription](https://portal.azure.com/) | 2ea66c5f-74a0-4844-801e-e17a7cd5c9b3 | |
+| [QuirchFoodsSubscription](https://portal.azure.com/) | 2ea66c5f-74a0-4844-801e-e17a7cd5c9b3 | Production (holds `qsqlbackups` / ProductionGroup) |
+| [QuirchFoodsHR](https://portal.azure.com/) | f944ddce-74a9-4242-8bf9-2757af97a6a4 | |
+| [EasyGridsProduction](https://portal.azure.com/) | d4b65cb3-d2ff-4fa2-b957-82833bf82527 | |
+| [JnD Refrigerated Services](https://portal.azure.com/) | 049389c7-775c-46af-80d4-2cc16dab8abe | |
+| [KZDuctWorks](https://portal.azure.com/) | fd61d2f4-a32d-48b2-a09b-284783f93396 | |
+| [Access to Azure AD (Converted to EA)](https://portal.azure.com/) | e4ae6c27-a006-4b16-90f5-79705b84f981 | EA billing |
 
 ## Naming Conventions
 - Resource Groups: `rg-{workload}-{env}-{region}`
@@ -55,6 +60,11 @@
 | Network Architecture | [Lucidchart](https://lucid.app/lucidchart/fb175220-0e8c-4076-8338-006f5dabaa8c/edit?invitationId=inv_63b5344e-398d-42fd-9328-0218d5fc04d9) | |
 | Container Apps Infrastructure | [Lucidchart](https://lucid.app/lucidchart/06e595e7-b07c-4233-84ec-39214e799ca1/edit?invitationId=inv_0102c82c-abd8-4ccf-81cd-5bca22dd89d2) | |
 
+## Storage Accounts
+| Account | Subscription / RG | Region | SKU | Purpose / Notes |
+|---------|-------------------|--------|-----|-----------------|
+| `qsqlbackups` | QuirchFoodsSubscription / ProductionGroup | eastus2 | Standard_RAGRS (StorageV2) | SQL backups. Blob versioning ON, change feed ON, blob soft-delete 30d, container soft-delete ON. Two private endpoints (10.6.1.134 Pacific, 192.168.114.16 EastUS2). ⚠️ `publicNetworkAccess = Enabled` (review). WORM on `qfsql-daily` — see [docs/worm-qfsql-daily.md](docs/worm-qfsql-daily.md). Backup containers: qfsql-daily/-monthly/-yearly, qfsqlbi-*, qcsql-*, qfedi-*, qnav-*, qsqlgp-*, qsql-argent, managed-instance, mi-1. |
+
 ## External Services / Vendors
 | Service | Purpose | Contact |
 |---------|---------|---------|
@@ -64,7 +74,7 @@
 | App Name | Purpose | Portal Link |
 |----------|---------|-------------|
 | QIntuneQueryApp | Service principal to manage Intune | [Azure Portal](https://portal.azure.com/#) |
-| QAzureReadOnlyApp | Read-only access to Azure resources and Entra ID for troubleshooting | [Azure Portal](https://portal.azure.com/#) |
+| QAzureReadOnlyApp | Read-only access to Azure resources and Entra ID for troubleshooting. **Client ID:** `1caf0c34-0866-4db4-b8e3-c6b37f0ee974` | [Azure Portal](https://portal.azure.com/#) |
 
 ---
 
