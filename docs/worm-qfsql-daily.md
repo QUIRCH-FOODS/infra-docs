@@ -1,6 +1,6 @@
 # WORM (Immutable Storage) — qsqlbackups / qfsql-daily
 
-**Status:** Policy applied **Unlocked**, 2026-06-30. Pending one validated backup cycle, then **lock** (security requirement).
+**Status:** Policy applied **Unlocked** on 2026-06-30; re-verified still **Unlocked** on 2026-07-01 (no changes). Next step: validate one nightly backup cycle, then **lock** to meet the security requirement. Until locked, the policy is **not** compliant — locking is the step that satisfies the requirement.
 
 ## Resource
 - **Storage account:** `qsqlbackups` (StorageV2, Standard_RAGRS, eastus2)
@@ -23,10 +23,11 @@
 - **Increasing** the period is always allowed (locked or unlocked); locked allows up to 5 increases. **Decreasing** is only possible while unlocked. Locking is **irreversible** — cannot shorten, remove, or delete the container/account until all blobs' retention expires.
 - "Append blobs" chosen because SQL `BACKUP ... TO URL` / SQL MI backups write **append blobs** in chunks; "None" would fail the backup job mid-write.
 
-## Before locking (do not skip)
+## Before locking (do not skip — locking is irreversible)
+Locking cannot be undone, so validate first while the policy is still Unlocked:
 1. Let one nightly `qfsql-daily` backup run under the policy.
-2. Confirm the SQL backup job **succeeds** and a new blob lands (no WORM write failures).
-3. Then lock (write op — needs admin, not QAzureReadOnlyApp):
+2. Confirm the SQL backup job **succeeds** and a new blob lands (no WORM append/overwrite write failures).
+3. Only then lock (write op — needs an admin identity; QAzureReadOnlyApp is read-only and cannot lock):
 ```bash
 az storage container immutability-policy lock \
   --account-name qsqlbackups --container-name qfsql-daily \
