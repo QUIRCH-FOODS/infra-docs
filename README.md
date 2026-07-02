@@ -17,6 +17,9 @@ Central infrastructure documentation, architecture diagrams, and standards for t
 |----------|-----------|------|
 |          |           |      |
 
+## Service Documentation
+- [Azure Update Manager — Maintenance Configurations](docs/azure-update-manager.md)
+
 ## Known Issues / Gotchas
 - 
 
@@ -28,6 +31,7 @@ Central infrastructure documentation, architecture diagrams, and standards for t
 - azure-apim
 - onprem-network
 - intune-management
+- [af-backup-ops-eastus2](https://github.com/QUIRCH-FOODS/af-backup-ops-eastus2) — daily SQL MI backup copy (qfsql-daily → qfsql-daily-immutable), Flex Consumption + private endpoints
 
 ## Infrastructure Context
 See [`_context.md`](./_context.md) for the environment grounding reference.
