@@ -22,6 +22,47 @@
 |---------------|------|---------|
 |               |      |         |
 
+## Network Topology (hub-and-spoke)
+
+`FW_HUB_VNET` (ProductionGroup, EastUS2) is the central hub — it has a firewall/NVA and is peered to every spoke below. Peerings marked `allowForwardedTraffic: false` mean traffic transiting through the hub from a third spoke may be blocked at the peering layer unless the hub NVA does SNAT (observed working in practice for at least one path — see qfsql note below).
+
+| Spoke VNet | Resource Group | Subscription | allowForwardedTraffic (hub→spoke) | Notes |
+|---|---|---|---|---|
+| `QuirchVnetEastUS2` | Default-Networking | QuirchFoodsSubscription | true | Houses VM `QSQL` (192.168.112.37) — legacy on-prem-gateway SQL Server |
+| `QSegmentedVnet` | ProductionGroup | QuirchFoodsSubscription | true | Segmented subnets incl. `QSegmentedSubnet2` (delegated to `Microsoft.Web/serverfarms`, used by App Service Plan `ASP-ProductionGroup-9c92` for Standard Logic App VNet integration) and `QSegmentedSubnet3` (VM `QSQL-APT` — a *different* VM from `QSQL`, easy to confuse) |
+| `AVD_VNET` | ProductionGroup | QuirchFoodsSubscription | true | AVD session host networking |
+| `SQL_VNET` | SQL_RG | QuirchFoodsSubscription | **false** | Hosts SQL MI virtual clusters (`qcosmos-eastus2` subnet `qcosmos-mi`, `qdev-mi` subnet `qdev-mi`). Despite `allowForwardedTraffic: false`, connectivity from `QSegmentedVnet` → hub → here tested successfully (Jul 2026), likely because the hub NVA SNATs before crossing this peering |
+| `BI_VNET` / `BI_VNET_2` | BI_RG_PROD | QuirchBI (different subscription) | false | Power BI/Fabric-related; `BI_VNET_2` also has a **VNet data gateway** (`BI_VNET_2-BI-Data-Gateway`) — note this is a Power BI/Fabric-only gateway type and is **not** usable from Logic Apps' managed-connector "Connection Gateway" picker (Logic Apps only supports classic on-prem data gateways there) |
+| `QuirchVnet` | default-networking | QuirchFoodsSubscription | true | |
+| `QCentralUS-01` | ProductionCentralUS | QuirchFoodsSubscription | true | Central US SQL MI cluster (`qcosmos-centralus`) |
+| `ButtsfoodsVN`, `CBBC_VNET`, `CBBC_VNET2` | ButtsfoodsRG, CBBC_RG | QuirchFoodsSubscription | false | Related-company networks peered to the hub |
+| `HV_ButtsJackson_...` | RG_ButtsJackson... | external subscription (`6b46ecda-...`) | n/a (peered to `QSegmentedVnet` directly, not via hub) | Cross-tenant/subscription peering |
+
+## SQL Managed Instances
+All in EastUS2 unless noted. MIs sharing a DNS zone ID are in the same virtual cluster/subnet.
+
+| MI name | FQDN zone | Resource Group | Subnet |
+|---|---|---|---|
+| `qcosmos-eastus2` | `0df600075ba7` | SQL_RG (SQL_VNET) | `qcosmos-mi` |
+| `qfsql` | `0df600075ba7` (same cluster as above) | SQL_RG (SQL_VNET) | `qcosmos-mi` |
+| `qdev-mi` | `8eee4cb5c80c` | SQL_RG (SQL_VNET) | `qdev-mi` |
+| `qcosmos-centralus` | `0df600075ba7` | ProductionCentralUS (QCentralUS-01) | `QCosmos-mi-CentralUS` |
+
+## Storage Accounts (key ones — several similarly-named accounts exist, easy to mix up)
+| Account | Tier/Redundancy | Purpose |
+|---|---|---|
+| `qavd` | Premium_LRS (FileStorage) | AVD FSLogix profile shares, EastUS2. Covered by a 2026 Azure Files reservation (see below) |
+| `qavdeastus` | PremiumV2_LRS (FileStorage) | AVD FSLogix, EastUS2 region variant. **Not** reservation-eligible (PremiumV2 isn't a supported reservation SKU) |
+| `qfilestorage` | Premium_ZRS (FileStorage) | General-purpose file server replacement (RC4→AES remediated 2026-06-27). Covered by a 2024 Azure Files reservation, only ~35% utilized |
+| `qfilestoragestandard` | StandardV2_ZRS (FileStorage) | AP document "hot folder" (`/qdocs/Hot Folders/AccountsPayables`) used by the AccountsPayableDocumentReader Logic App |
+| `qsftp` | Blob, SFTP feature enabled | Trading-partner/EDI file exchange (Walmart, Coca-Cola, banks, Workday/UKG, etc. — ~26 local SFTP users). Host key is Microsoft-managed per-region, not per-account — see [learn.microsoft.com/azure/storage/blobs/secure-file-transfer-protocol-host-keys](https://learn.microsoft.com/azure/storage/blobs/secure-file-transfer-protocol-host-keys) |
+
+## Azure Reservations
+| Reservation | SKU | Qty | Covers | Term | Expires |
+|---|---|---|---|---|---|
+| `AzureFiles_RI_06-14-2024` | Premium_ZRS_Provisioned_10TB | 3 (30 TiB) | `qfilestorage` | 3yr | 2027-06-14 — re-evaluate size at renewal, usage sustained at ~35% |
+| `AzureFiles_RI_07-09-2026` | Premium_LRS_Provisioned_10TB | 2 (20 TiB) | `qavd` | 3yr | 2029-07-09 |
+
 ## Key Vault References
 | Vault Name | Purpose |
 |------------|---------|
@@ -39,6 +80,9 @@
 | Service | Purpose | Contact |
 |---------|---------|---------|
 |         |         |         |
+
+## Azure Databricks
+5 workspaces, all Premium tier, EastUS2, all in **QuirchBI** subscription (not QuirchFoodsSubscription): `QDatabricks_WebAuth`, `qf-dbrk-dev`, `qf-dbrk-prod`, `qf-dbrk-uat`, `qf-dbrk-webauth`. DBU spend is stable month to month (~$4,100-4,300/month), dominated by Premium Serverless SQL DBU (~78% of the bill). No DBCU prepurchase in place as of Jul 2026 — Advisor recommends a 50,000 DBCU/1yr (~$46K, ~8% discount) or 150,000 DBCU/3yr (~$135K, ~10% discount) plan sized to this baseline. Note: Databricks prepurchase is **upfront-only billing**, no monthly option, and purchases are final (no cancel/exchange).
 
 ## Entra ID App Registrations / Service Principals
 | App Name | Purpose | Portal Link |
@@ -78,7 +122,7 @@ Apply to all subscriptions (QuirchBI, QuirchDev, QuirchFoodsSubscription).
 
 Client secret stored in Azure Key Vault: **JGJKeyVault**.
 
-- **Application (client) ID** — from the App Registration overview
+- **Application (client) ID** — `1caf0c34-0866-4db4-b8e3-c6b37f0ee974`
 - **Tenant ID** — `a87170fd-4ce5-4784-89ee-8be697b9b581`
 - **Client secret** — retrieve from JGJKeyVault
 
