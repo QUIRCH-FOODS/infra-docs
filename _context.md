@@ -96,7 +96,15 @@ All in EastUS2 unless noted. MIs sharing a DNS zone ID are in the same virtual c
 
 QAzureReadOnlyApp is an Entra ID App Registration with read-only permissions for querying Azure resources and Entra ID objects. Use this service principal for information requests and troubleshooting. For any write or modification operations, use the admin account instead.
 
+### Entra ID Directory Role
+
+| Role | Purpose | Assigned |
+|------|---------|----------|
+| **Global Reader** | Tenant-wide read-only access equivalent to Global Admin (Exchange, Teams, SharePoint, Security & Compliance, M365 admin center, Entra ID) | Confirmed active as of 2026-07-15 |
+
 ### Microsoft Graph API Permissions (Application type)
+
+Expanded 2026-06-05 to cover cross-admin-center read access; all entries below are consented (verified against `appRoleAssignments` 2026-07-15).
 
 | Permission | Purpose |
 |------------|---------|
@@ -104,7 +112,21 @@ QAzureReadOnlyApp is an Entra ID App Registration with read-only permissions for
 | `Device.Read.All` | Read device objects (AVD hosts, Intune devices) |
 | `Application.Read.All` | Read app registrations and service principals |
 | `AuditLog.Read.All` | Read sign-in and audit logs for troubleshooting |
+| `AuditLogsQuery.Read.All` | Read audit log data from all services |
 | `Policy.Read.All` | Read Conditional Access and auth policies |
+| `User.Read.All` | Read all users' full profiles |
+| `Group.Read.All` | Read all groups |
+| `AdministrativeUnit.Read.All` | Read all administrative units |
+| `Organization.Read.All` | Read organization/tenant info |
+| `RoleManagement.Read.Directory` | Read all directory RBAC role assignments |
+| `IdentityProvider.Read.All` | Read identity providers |
+| `Reports.Read.All` | Read all M365 usage reports |
+| `Mail.Read` / `Mail.ReadBasic.All` / `MailboxSettings.Read` / `Calendars.Read` | Exchange Online: read mail, mailbox settings, calendars (all mailboxes) |
+| `Sites.Read.All` / `Files.Read.All` | SharePoint/OneDrive: read all site collections and files |
+| `Team.ReadBasic.All` / `Channel.ReadBasic.All` / `ChannelMember.Read.All` / `Chat.Read.All` / `ChatMember.Read.All` | Teams admin center: read teams, channels, members, chats |
+| `SecurityEvents.Read.All` / `SecurityAlert.Read.All` / `SecurityIncident.Read.All` / `ThreatIndicators.Read.All` | Security & Compliance / Defender: read events, alerts, incidents, threat intel |
+| `InformationProtectionPolicy.Read.All` | Read Purview sensitivity labels and label policies |
+| `DeviceManagementManagedDevices.Read.All` / `DeviceManagementConfiguration.Read.All` / `DeviceManagementApps.Read.All` / `DeviceManagementServiceConfig.Read.All` | Intune admin center: read managed devices, configuration profiles, apps, service config (added 2026-07-15, mirrors `QIntuneQueryApp`'s read scope) |
 
 ### Azure RBAC Role Assignments
 
@@ -137,8 +159,14 @@ Client secret stored in Azure Key Vault: **JGJKeyVault**.
 - Query Log Analytics workspaces
 - Read Key Vault metadata (not secret values)
 - Read cost data, budgets, exports, billing
-- Query Entra ID: users, groups, devices, app registrations, sign-in logs
+- Query Entra ID: users, groups, devices, app registrations, sign-in logs, admin units, RBAC role assignments
 - Read Conditional Access policies
+- Read Exchange Online mail, mailbox settings, calendars (Global Reader + Graph mail permissions)
+- Read Teams: teams, channels, channel/chat members, chat messages
+- Read SharePoint/OneDrive site collections and files
+- Read Security & Compliance: alerts, incidents, threat indicators, Purview sensitivity labels
+- Read M365 usage reports and audit logs across services
+- Read Intune: managed devices, configuration profiles, apps, service config
 
 ### What QAzureReadOnlyApp CANNOT do (use admin account)
 
