@@ -2,3 +2,6 @@
 # Claude Code local memory (private, not shared)
 MEMORY.md
 memory/
+
+# M365 usage report exports (contain user data - keep out of git)
+M365CopilotUsage_*.csv

@@ -91,6 +91,9 @@ QAzureReadOnlyApp is an Entra ID App Registration with read-only permissions for
 | `Application.Read.All` | Read app registrations and service principals |
 | `AuditLog.Read.All` | Read sign-in and audit logs for troubleshooting |
 | `Policy.Read.All` | Read Conditional Access and auth policies |
+| `Reports.Read.All` | Read M365 usage reports (incl. Copilot usage) |
+
+> Note: the app's actual granted role set is broader than this table (also includes User.Read.All, Group.Read.All, Sites.Read.All, Mail.Read, Chat.Read.All, DeviceManagement*.Read.All, Security*.Read.All, Organization.Read.All, etc.). Inspect the token `roles` claim for the current list.
 
 ### Azure RBAC Role Assignments
 
@@ -106,13 +109,33 @@ Apply to all subscriptions (QuirchBI, QuirchDev, QuirchFoodsSubscription).
 
 ### Authentication
 
-Client secret stored in Azure Key Vault: **JGJKeyVault**.
+**Standard read-only pattern:** for any read-only Azure / Entra / Microsoft Graph query, authenticate **app-only as QAzureReadOnlyApp** (client credentials) — not delegated/interactive user sign-in. Interactive web sign-in is used only to sign in **to Azure as admin** so the QAzureReadOnlyApp secret can be pulled from the vault once per session.
 
-- **Application (client) ID** — from the App Registration overview
+- **Application (client) ID** — `1caf0c34-0866-4db4-b8e3-c6b37f0ee974`
 - **Tenant ID** — `a87170fd-4ce5-4784-89ee-8be697b9b581`
-- **Client secret** — retrieve from JGJKeyVault
+- **Client secret** — Key Vault **JGJKeyVault**, secret name **`QAzureReadOnlyApp-Secret`**
 
-> ⚠️ Do not store the secret in GitHub repos or AI memory. Retrieve from JGJKeyVault and provide in-session as needed.
+One-time-per-session retrieval + use:
+
+```powershell
+Connect-AzAccount   # interactive, as admin (only to read the vault)
+$sec = (Get-AzKeyVaultSecret -VaultName JGJKeyVault -Name 'QAzureReadOnlyApp-Secret').SecretValue
+# then client-credentials token:
+$tok = (Invoke-RestMethod -Method Post -Uri "https://login.microsoftonline.com/a87170fd-4ce5-4784-89ee-8be697b9b581/oauth2/v2.0/token" -Body @{
+    client_id     = '1caf0c34-0866-4db4-b8e3-c6b37f0ee974'
+    scope         = 'https://graph.microsoft.com/.default'
+    client_secret = [System.Net.NetworkCredential]::new('', $sec).Password
+    grant_type    = 'client_credentials'
+}).access_token
+```
+
+> ⚠️ Do not store the secret in GitHub repos or AI memory. Retrieve from JGJKeyVault per session and hold in-session only.
+
+**Reports permission:** QAzureReadOnlyApp also holds `Reports.Read.All` (application), so it can pull Microsoft 365 usage reports.
+
+**M365 Copilot usage report (gotcha):** the endpoint lives under the **`/copilot/reports/`** namespace on **v1.0** — NOT the classic `/reports/` root, and NOT beta (both return `400 "Resource not found for the segment"`):
+`GET https://graph.microsoft.com/v1.0/copilot/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')`
+Periods: `D7` `D30` `D90` `D180` (D30 = "monthly"). Returns CSV. Script: `MyPersonalScripts/Microsoft-365/Copilot/Get-M365CopilotUsage.ps1`.
 
 ### What QAzureReadOnlyApp CAN do
 
