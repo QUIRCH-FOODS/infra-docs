@@ -3,6 +3,17 @@
 **Date:** 2026-06-16
 **Subscription:** QuirchFoodsSubscription (2ea66c5f-74a0-4844-801e-e17a7cd5c9b3)
 
+Knowledge record:
+- Topic: Private endpoint DNS split-horizon issue for qsqlbackups
+- Owning repo: https://github.com/QUIRCH-FOODS/infra-docs
+- Canonical guide: https://github.com/QUIRCH-FOODS/infra-docs/blob/main/docs/qskysheepsql-blob-pe-dns.md
+- Canonical script/config: https://github.com/QUIRCH-FOODS/infra-docs/blob/main/docs/qskysheepsql-blob-pe-dns.md
+- Last verified: 2026-07-21
+- Usage intent: Use this for root cause and workaround when Pacific VNET backups cannot reach qsqlbackups private endpoint.
+
+Exception classification:
+- Allowed local content under the Knowledge Index Standard as cross-repo operational context and environment-specific DNS behavior.
+
 ## Goal
 Enable the VM **QSkysheepSQL** to save SQL backups (`BACKUP DATABASE ... TO URL`) to the
 storage account **`qsqlbackups`** over a private endpoint.

@@ -8,6 +8,22 @@ PowerShell script library. Use this to find which repo owns a given domain so yo
 > owning repo below; then clone/pull that repo (or the specific path) to work on it.
 > This `infra-docs` repo is the hub — domain detail lives in the linked repos.
 
+> **Governance standard:** infra-docs is a master index and pointer hub. Keep canonical
+> links to source repos/files and avoid duplicating full operational runbooks here.
+> See [docs/knowledge-index-standard.md](docs/knowledge-index-standard.md).
+
+## Pointer Records Checklist
+
+Use this checklist before adding or updating topic records in infra-docs:
+
+1. Confirm the owning repo for the topic.
+2. Add canonical links to exact source files (guide/script/config).
+3. Keep only a short pointer summary in infra-docs.
+4. Do not duplicate step-by-step runbook content from source repos.
+5. Add or refresh last-verified date.
+6. If local detail is required, label it as an approved exception (cross-repo context, incident history, or environment-specific gotcha).
+7. Update source repo first, then refresh pointers in infra-docs.
+
 Last reviewed: 2026-07-20.
 
 ---

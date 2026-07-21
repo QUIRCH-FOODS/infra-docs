@@ -31,8 +31,15 @@ When you need to **reference, upgrade, or update** a specific project, start her
 
 To work on a domain: find its repo in REPOS.md → clone/pull that repo (or the specific path) → make the change there.
 
+## Knowledge Standard
+- infra-docs is the master index for repository knowledge, not a duplicate content store.
+- Keep pointer records with canonical links to source repos/files.
+- Update source repo first, then refresh pointers in infra-docs.
+- Standard: [Knowledge Index Standard](docs/knowledge-index-standard.md)
+
 ## Runbooks
 - [Cisco switch troubleshooting](docs/cisco-switch-troubleshooting.md) — SSH access to the CBB/Quirch Cisco switches via the read-only `troubleshoot` account (parser view), plink usage, gotchas, and diagnostic commands.
+- [SonicWall firewall API access](docs/sonicwall-firewall-api-access.md) — pointer-only record to the canonical azure-networking guide and helper script.
 
 ## Infrastructure Context
 See [`_context.md`](./_context.md) for the environment grounding reference.
